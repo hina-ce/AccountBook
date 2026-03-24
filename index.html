@@ -23,7 +23,6 @@
       <header class="topbar">
         <div>
           <p class="eyebrow">Expense Logger</p>
-          <h1>支出記録</h1>
         </div>
         <div class="status-group" aria-label="状態">
           <span id="network-status" class="status-pill">確認中</span>
@@ -31,12 +30,9 @@
         </div>
       </header>
 
-      <section class="panel entry-panel" aria-labelledby="entry-heading">
+      <section class="panel entry-panel" aria-label="入力">
         <div class="panel-heading">
-          <div>
-            <p class="section-label">入力</p>
-            <h2 id="entry-heading">その場で記録</h2>
-          </div>
+          <p class="section-label">入力</p>
           <p id="entry-mode" class="mode-badge">新規</p>
         </div>
 
@@ -52,7 +48,6 @@
               autocomplete="off"
               enterkeyhint="done"
               maxlength="6"
-              placeholder="1200"
               required
             />
           </label>
@@ -94,18 +89,15 @@
         </form>
       </section>
 
-      <section class="panel send-panel" aria-labelledby="send-heading">
+      <section class="panel send-panel" aria-label="送信">
         <div class="panel-heading">
-          <div>
-            <p class="section-label">送信</p>
-            <h2 id="send-heading">メール作成</h2>
-          </div>
+          <p class="section-label">送信</p>
           <p id="batch-status" class="mode-badge">1通最大10件</p>
         </div>
 
         <div class="send-grid">
           <label class="field">
-            <span class="field-label">送信先メールアドレス</span>
+            <span class="field-label">宛先メールアドレス</span>
             <input
               id="email-input"
               name="email"
@@ -133,12 +125,9 @@
         </div>
       </section>
 
-      <section class="panel list-panel" aria-labelledby="records-heading">
+      <section class="panel list-panel" aria-label="履歴">
         <div class="panel-heading">
-          <div>
-            <p class="section-label">履歴</p>
-            <h2 id="records-heading">直近10件</h2>
-          </div>
+          <p class="section-label">履歴</p>
           <p id="total-count-label" class="mode-badge">全体 0 件</p>
         </div>
 
