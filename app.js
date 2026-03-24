@@ -336,13 +336,7 @@ function openMailDraft(email, batch) {
 
 function createMailBatch() {
   const email = emailInput.value.trim();
-  if (!email) {
-    setFeedback(sendFeedback, "送信先メールアドレスを入力してください。", true);
-    emailInput.focus();
-    return;
-  }
-
-  if (!emailInput.checkValidity()) {
+  if (email && !emailInput.checkValidity()) {
     setFeedback(sendFeedback, "送信先メールアドレスの形式を確認してください。", true);
     emailInput.focus();
     return;
