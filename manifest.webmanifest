@@ -1,0 +1,32 @@
+{
+  "id": "./",
+  "name": "支出記録",
+  "short_name": "支出記録",
+  "description": "外出先の支出を素早く記録し、未送信データをメール作成する iPhone Safari 向け PWA。",
+  "lang": "ja-JP",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#f4efe6",
+  "theme_color": "#1d5c4c",
+  "categories": ["finance", "productivity"],
+  "icons": [
+    {
+      "src": "./icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "./icons/apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    }
+  ]
+}

@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#1d5c4c" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+
+    <title>支出記録</title>
+    <meta
+      name="description"
+      content="外出先の支出を素早く記録し、未送信データをメール作成できる iPhone Safari 向け PWA。"
+    />
+
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" type="image/png" sizes="192x192" href="./icons/icon-192.png" />
+    <link rel="apple-touch-icon" href="./icons/apple-touch-icon.png" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">Expense Logger</p>
+          <h1>支出記録</h1>
+        </div>
+        <div class="status-group" aria-label="状態">
+          <span id="network-status" class="status-pill">確認中</span>
+          <span id="unsent-status" class="status-pill status-pill-accent">未送信 0 件</span>
+        </div>
+      </header>
+
+      <section class="panel entry-panel" aria-labelledby="entry-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">入力</p>
+            <h2 id="entry-heading">その場で記録</h2>
+          </div>
+          <p id="entry-mode" class="mode-badge">新規</p>
+        </div>
+
+        <form id="entry-form" class="entry-form" novalidate>
+          <label class="field">
+            <span class="field-label">金額</span>
+            <input
+              id="amount-input"
+              name="amount"
+              class="field-input field-input-large"
+              type="text"
+              inputmode="numeric"
+              autocomplete="off"
+              enterkeyhint="done"
+              maxlength="6"
+              placeholder="1200"
+              required
+            />
+          </label>
+
+          <fieldset class="field category-field">
+            <legend class="field-label">カテゴリ</legend>
+            <div id="category-list" class="category-grid" role="radiogroup" aria-label="カテゴリ">
+              <button type="button" class="category-chip" data-category="食費">食費</button>
+              <button type="button" class="category-chip" data-category="外食費">外食費</button>
+              <button type="button" class="category-chip" data-category="交際費">交際費</button>
+              <button type="button" class="category-chip" data-category="娯楽費">娯楽費</button>
+              <button type="button" class="category-chip" data-category="医療費">医療費</button>
+              <button type="button" class="category-chip" data-category="雑費">雑費</button>
+            </div>
+          </fieldset>
+
+          <label class="field">
+            <span class="field-label">メモ</span>
+            <input
+              id="memo-input"
+              name="memo"
+              class="field-input"
+              type="text"
+              maxlength="32"
+              autocomplete="off"
+              enterkeyhint="done"
+              placeholder="任意"
+            />
+          </label>
+
+          <p id="entry-feedback" class="feedback" role="status" aria-live="polite"></p>
+
+          <div class="action-row">
+            <button id="save-button" class="primary-button" type="submit">保存</button>
+            <button id="cancel-edit-button" class="secondary-button" type="button" hidden>
+              新規に戻す
+            </button>
+          </div>
+        </form>
+      </section>
+
+      <section class="panel send-panel" aria-labelledby="send-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">送信</p>
+            <h2 id="send-heading">メール作成</h2>
+          </div>
+          <p id="batch-status" class="mode-badge">1通最大10件</p>
+        </div>
+
+        <div class="send-grid">
+          <label class="field">
+            <span class="field-label">送信先メールアドレス</span>
+            <input
+              id="email-input"
+              name="email"
+              class="field-input"
+              type="email"
+              inputmode="email"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="name@example.com"
+              required
+            />
+          </label>
+
+          <div class="send-summary">
+            <p class="summary-value"><span id="unsent-count">0</span> 件</p>
+            <p class="summary-label">未送信</p>
+          </div>
+        </div>
+
+        <p id="send-feedback" class="feedback" role="status" aria-live="polite"></p>
+
+        <div class="action-row">
+          <button id="send-button" class="primary-button" type="button">メールを作成</button>
+        </div>
+      </section>
+
+      <section class="panel list-panel" aria-labelledby="records-heading">
+        <div class="panel-heading">
+          <div>
+            <p class="section-label">履歴</p>
+            <h2 id="records-heading">直近10件</h2>
+          </div>
+          <p id="total-count-label" class="mode-badge">全体 0 件</p>
+        </div>
+
+        <ul id="records-list" class="records-list" aria-live="polite"></ul>
+        <p id="records-empty" class="empty-state" hidden>記録はまだありません。</p>
+      </section>
+    </main>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>
