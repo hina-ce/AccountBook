@@ -1,4 +1,5 @@
 const STORAGE_KEY = "expense-pwa-records-v1";
+const EMAIL_STORAGE_KEY = "expense-pwa-email-v1";
 const MAX_RECENT = 10;
 const MAX_BATCH_SIZE = 10;
 const MAX_AMOUNT = 999999;
@@ -135,6 +136,29 @@ function readRecords() {
 function writeRecords(nextRecords) {
   records = [...nextRecords].sort(sortByDatetimeDesc);
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+
+function readSavedEmail() {
+  try {
+    const raw = window.localStorage.getItem(EMAIL_STORAGE_KEY);
+    return typeof raw === "string" ? raw.trim() : "";
+  } catch (error) {
+    console.error("Failed to read saved email:", error);
+    return "";
+  }
+}
+
+function writeSavedEmail(email) {
+  try {
+    if (!email) {
+      window.localStorage.removeItem(EMAIL_STORAGE_KEY);
+      return;
+    }
+
+    window.localStorage.setItem(EMAIL_STORAGE_KEY, email);
+  } catch (error) {
+    console.error("Failed to write saved email:", error);
+  }
 }
 
 function pruneExpiredRecords(sourceRecords) {
@@ -355,6 +379,7 @@ function createMailBatch() {
   );
 
   writeRecords(nextRecords);
+  writeSavedEmail(email);
   renderAll();
   const remaining = records.filter((record) => record.sentAt === null).length;
   setFeedback(
@@ -451,6 +476,7 @@ function registerServiceWorker() {
 function initialize() {
   records = pruneExpiredRecords(readRecords()).sort(sortByDatetimeDesc);
   writeRecords(records);
+  emailInput.value = readSavedEmail();
   renderAll();
   updateNetworkStatus();
   registerServiceWorker();
@@ -472,6 +498,13 @@ cancelEditButton.addEventListener("click", () => {
 });
 amountInput.addEventListener("input", sanitizeNumericInput);
 memoInput.addEventListener("input", sanitizeMemoInput);
+emailInput.addEventListener("change", () => {
+  const email = emailInput.value.trim();
+  emailInput.value = email;
+  if (!email || emailInput.checkValidity()) {
+    writeSavedEmail(email);
+  }
+});
 sendButton.addEventListener("click", createMailBatch);
 recordsList.addEventListener("click", (event) => {
   const button = event.target.closest(".record-button");
