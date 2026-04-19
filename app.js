@@ -20,6 +20,10 @@ const entryFeedback = document.getElementById("entry-feedback");
 const sendFeedback = document.getElementById("send-feedback");
 const recordsList = document.getElementById("records-list");
 const recordsEmpty = document.getElementById("records-empty");
+const monthlySummary = document.getElementById("monthly-summary");
+const monthlySummaryBody = document.getElementById("monthly-summary-body");
+const currentMonthLabel = document.getElementById("current-month-label");
+const previousMonthLabel = document.getElementById("previous-month-label");
 const entryMode = document.getElementById("entry-mode");
 const unsentStatus = document.getElementById("unsent-status");
 const unsentCount = document.getElementById("unsent-count");
@@ -84,6 +88,14 @@ function formatCsvDateTime(value) {
 
 function formatAmount(value) {
   return new Intl.NumberFormat("ja-JP").format(value);
+}
+
+function formatYearMonth(date) {
+  return `${date.getFullYear()}/${String(date.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function formatMonthHeading(label, date) {
+  return `${label}（${formatYearMonth(date)}）`;
 }
 
 function generateSuffix() {
@@ -305,9 +317,104 @@ function renderRecords() {
   });
 }
 
+function collectMonthlyTotals() {
+  const now = new Date();
+  const currentMonthDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  const previousMonthDate = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+  const currentKey = `${currentMonthDate.getFullYear()}-${currentMonthDate.getMonth()}`;
+  const previousKey = `${previousMonthDate.getFullYear()}-${previousMonthDate.getMonth()}`;
+  const totals = {
+    current: Object.fromEntries(CATEGORIES.map((category) => [category, 0])),
+    previous: Object.fromEntries(CATEGORIES.map((category) => [category, 0]))
+  };
+
+  records.forEach((record) => {
+    if (!CATEGORIES.includes(record.category)) {
+      return;
+    }
+
+    const date = new Date(record.datetime);
+    if (Number.isNaN(date.getTime())) {
+      return;
+    }
+
+    const monthKey = `${date.getFullYear()}-${date.getMonth()}`;
+    const amount = Number(record.amount);
+    if (!Number.isFinite(amount)) {
+      return;
+    }
+
+    if (monthKey === currentKey) {
+      totals.current[record.category] += amount;
+    } else if (monthKey === previousKey) {
+      totals.previous[record.category] += amount;
+    }
+  });
+
+  return {
+    currentMonthDate,
+    previousMonthDate,
+    totals
+  };
+}
+
+function renderMonthlySummary() {
+  monthlySummary.hidden = records.length === 0;
+  monthlySummaryBody.innerHTML = "";
+  currentMonthLabel.textContent = "今月";
+  previousMonthLabel.textContent = "前月";
+
+  if (records.length === 0) {
+    return;
+  }
+
+  const { currentMonthDate, previousMonthDate, totals } = collectMonthlyTotals();
+  currentMonthLabel.textContent = formatMonthHeading("今月", currentMonthDate);
+  previousMonthLabel.textContent = formatMonthHeading("前月", previousMonthDate);
+
+  let currentGrandTotal = 0;
+  let previousGrandTotal = 0;
+
+  CATEGORIES.forEach((category) => {
+    const row = document.createElement("tr");
+
+    const heading = document.createElement("th");
+    heading.scope = "row";
+    heading.textContent = category;
+
+    const currentCell = document.createElement("td");
+    currentCell.textContent = `¥${formatAmount(totals.current[category])}`;
+
+    const previousCell = document.createElement("td");
+    previousCell.textContent = `¥${formatAmount(totals.previous[category])}`;
+
+    currentGrandTotal += totals.current[category];
+    previousGrandTotal += totals.previous[category];
+    row.append(heading, currentCell, previousCell);
+    monthlySummaryBody.append(row);
+  });
+
+  const totalRow = document.createElement("tr");
+  totalRow.className = "is-total";
+
+  const totalHeading = document.createElement("th");
+  totalHeading.scope = "row";
+  totalHeading.textContent = "総額";
+
+  const currentTotalCell = document.createElement("td");
+  currentTotalCell.textContent = `¥${formatAmount(currentGrandTotal)}`;
+
+  const previousTotalCell = document.createElement("td");
+  previousTotalCell.textContent = `¥${formatAmount(previousGrandTotal)}`;
+
+  totalRow.append(totalHeading, currentTotalCell, previousTotalCell);
+  monthlySummaryBody.append(totalRow);
+}
+
 function renderAll() {
   renderSummary();
   renderRecords();
+  renderMonthlySummary();
 }
 
 function startEdit(recordId) {

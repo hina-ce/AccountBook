@@ -1,5 +1,6 @@
-const STATIC_CACHE = "expense-pwa-static-v1";
-const RUNTIME_CACHE = "expense-pwa-runtime-v1";
+const CACHE_VERSION = "v2";
+const STATIC_CACHE = `expense-pwa-static-${CACHE_VERSION}`;
+const RUNTIME_CACHE = `expense-pwa-runtime-${CACHE_VERSION}`;
 const CORE_ASSETS = [
   "./",
   "./index.html",

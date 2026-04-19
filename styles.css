@@ -373,6 +373,67 @@ h2 {
   padding: 8px 2px 2px;
 }
 
+.monthly-summary {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.monthly-summary-header {
+  margin-bottom: 12px;
+}
+
+.monthly-summary-table-wrap {
+  overflow-x: auto;
+}
+
+.monthly-summary-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  background: rgba(255, 251, 245, 0.7);
+  border: 1px solid rgba(24, 40, 35, 0.08);
+  border-radius: 20px;
+  overflow: hidden;
+}
+
+.monthly-summary-table th,
+.monthly-summary-table td {
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(24, 40, 35, 0.08);
+  text-align: right;
+}
+
+.monthly-summary-table thead th {
+  font-size: 0.88rem;
+  color: var(--muted);
+  background: rgba(213, 230, 220, 0.52);
+}
+
+.monthly-summary-table th:first-child,
+.monthly-summary-table td:first-child {
+  text-align: left;
+}
+
+.monthly-summary-table tbody th {
+  font-weight: 700;
+}
+
+.monthly-summary-table tbody td {
+  font-variant-numeric: tabular-nums;
+}
+
+.monthly-summary-table tbody tr:last-child th,
+.monthly-summary-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.monthly-summary-table .is-total th,
+.monthly-summary-table .is-total td {
+  font-weight: 700;
+  background: rgba(29, 92, 76, 0.08);
+}
+
 @media (max-width: 640px) {
   .app-shell {
     width: min(100% - 14px, 760px);
@@ -407,5 +468,11 @@ h2 {
   .primary-button,
   .secondary-button {
     width: 100%;
+  }
+
+  .monthly-summary-table th,
+  .monthly-summary-table td {
+    padding: 11px 8px;
+    font-size: 0.92rem;
   }
 }

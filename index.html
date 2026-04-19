@@ -132,6 +132,25 @@
 
         <ul id="records-list" class="records-list" aria-live="polite"></ul>
         <p id="records-empty" class="empty-state" hidden>記録はまだありません。</p>
+
+        <section id="monthly-summary" class="monthly-summary" aria-label="月次集計" hidden>
+          <div class="monthly-summary-header">
+            <p class="section-label">月次集計</p>
+          </div>
+
+          <div class="monthly-summary-table-wrap">
+            <table class="monthly-summary-table">
+              <thead>
+                <tr>
+                  <th scope="col">費目</th>
+                  <th id="current-month-label" scope="col">今月</th>
+                  <th id="previous-month-label" scope="col">前月</th>
+                </tr>
+              </thead>
+              <tbody id="monthly-summary-body"></tbody>
+            </table>
+          </div>
+        </section>
       </section>
     </main>
 
