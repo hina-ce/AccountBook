@@ -535,7 +535,7 @@ function handleEntrySubmit(event) {
     renderAll();
     resetEntryForm();
     setFeedback(entryFeedback, "更新しました。");
-    amountInput.focus();
+    createMailBatch();
     return;
   }
 
@@ -553,7 +553,7 @@ function handleEntrySubmit(event) {
   renderAll();
   resetEntryForm();
   setFeedback(entryFeedback, "保存しました。");
-  amountInput.focus();
+  createMailBatch();
 }
 
 function sanitizeNumericInput(event) {
