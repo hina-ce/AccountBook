@@ -12,7 +12,6 @@
   --warn: #ff9b7f;
   --shadow: 0 24px 72px rgba(0, 0, 0, 0.34);
   --font-body: "Hiragino Sans", "Yu Gothic UI", "Meiryo", sans-serif;
-  --font-display: "Yu Mincho", "Hiragino Mincho ProN", "Times New Roman", serif;
 }
 
 * {
@@ -53,32 +52,21 @@ button {
   z-index: 1;
   width: min(760px, calc(100% - 20px));
   margin: 0 auto;
-  padding: 18px 0 32px;
+  padding: 10px 0 32px;
 }
 
-.topbar,
 .panel,
 .record-button,
 .category-chip,
+.memo-preset-button,
 .field-input,
 .primary-button,
 .secondary-button,
-.status-pill,
 .mode-badge {
   backdrop-filter: blur(16px);
 }
 
-.topbar {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.eyebrow,
-.section-label,
-.summary-label {
+.section-label {
   margin: 0;
   font-size: 0.78rem;
   font-weight: 700;
@@ -87,30 +75,6 @@ button {
   color: var(--muted);
 }
 
-h1,
-h2 {
-  font-family: var(--font-display);
-}
-
-h1 {
-  margin: 6px 0 0;
-  font-size: clamp(2.2rem, 8vw, 3.2rem);
-  line-height: 1.02;
-}
-
-h2 {
-  margin: 6px 0 0;
-  font-size: clamp(1.6rem, 5vw, 2rem);
-}
-
-.status-group {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-end;
-  gap: 8px;
-}
-
-.status-pill,
 .mode-badge {
   display: inline-flex;
   align-items: center;
@@ -122,7 +86,6 @@ h2 {
   border: 1px solid var(--line);
 }
 
-.status-pill-accent,
 .mode-badge {
   color: #d9fff2;
   background: var(--accent-soft);
@@ -138,6 +101,10 @@ h2 {
   box-shadow: var(--shadow);
 }
 
+.entry-panel {
+  margin-top: 0;
+}
+
 .panel-heading {
   display: flex;
   align-items: flex-start;
@@ -147,7 +114,7 @@ h2 {
 }
 
 .entry-form,
-.send-grid {
+.memo-preset-settings-form {
   display: grid;
   gap: 16px;
 }
@@ -220,6 +187,25 @@ h2 {
   border-color: transparent;
 }
 
+.memo-preset-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.memo-preset-button {
+  min-height: 44px;
+  padding: 0 12px;
+  border-radius: 14px;
+  color: #d9fff2;
+  background: var(--accent-soft);
+  border: 1px solid rgba(79, 195, 161, 0.24);
+}
+
+.memo-preset-button:active {
+  transform: translateY(1px);
+}
+
 .feedback {
   min-height: 1.5em;
   margin: 0;
@@ -266,26 +252,6 @@ h2 {
 .primary-button:not(:disabled):active,
 .secondary-button:not(:disabled):active {
   transform: translateY(1px);
-}
-
-.send-panel .send-grid {
-  grid-template-columns: minmax(0, 1fr) 120px;
-  align-items: end;
-}
-
-.send-summary {
-  min-height: 54px;
-  padding: 12px 14px;
-  border-radius: 18px;
-  background: rgba(79, 195, 161, 0.1);
-  border: 1px solid rgba(79, 195, 161, 0.18);
-}
-
-.summary-value {
-  margin: 0;
-  font-size: 1.45rem;
-  font-weight: 700;
-  line-height: 1.1;
 }
 
 .records-list {
@@ -336,22 +302,6 @@ h2 {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-}
-
-.record-tag {
-  display: inline-flex;
-  align-items: center;
-  min-height: 30px;
-  padding: 0 12px;
-  border-radius: 999px;
-  font-size: 0.84rem;
-  background: rgba(79, 195, 161, 0.14);
-  color: #c9ffef;
-}
-
-.record-tag.is-sent {
-  background: rgba(167, 182, 175, 0.16);
-  color: #c0cbc6;
 }
 
 .empty-state {
@@ -419,13 +369,32 @@ h2 {
   background: rgba(79, 195, 161, 0.12);
 }
 
+.memo-preset-settings {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.memo-preset-settings-header {
+  margin-bottom: 14px;
+}
+
+.memo-preset-settings-list {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.memo-preset-save-button {
+  width: 100%;
+}
+
 @media (max-width: 640px) {
   .app-shell {
     width: min(100% - 14px, 760px);
-    padding: 12px 0 22px;
+    padding: 7px 0 22px;
   }
 
-  .topbar,
   .panel-heading,
   .record-top,
   .record-bottom {
@@ -433,21 +402,16 @@ h2 {
     align-items: flex-start;
   }
 
-  .status-group {
-    width: 100%;
-    flex-direction: row;
-    flex-wrap: wrap;
-    align-items: flex-start;
-  }
-
   .category-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  .send-panel .send-grid,
   .action-row {
-    grid-template-columns: 1fr;
     flex-direction: column;
+  }
+
+  .memo-preset-settings-list {
+    grid-template-columns: 1fr;
   }
 
   .primary-button,

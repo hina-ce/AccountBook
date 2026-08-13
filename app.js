@@ -1,12 +1,13 @@
 const STORAGE_KEY = "expense-pwa-records-v1";
 const EMAIL_STORAGE_KEY = "expense-pwa-email-v1";
+const MEMO_PRESET_STORAGE_KEY = "expense-pwa-memo-presets-v1";
 const MAX_RECENT = 10;
-const MAX_BATCH_SIZE = 10;
 const MAX_AMOUNT = 999999;
 const MAX_MEMO_LENGTH = 32;
 const AUTO_DELETE_DAYS = 60;
 const MAIL_SUBJECT = "kakeibo-pwa-export";
 const CATEGORIES = ["食費", "外食費", "交際費", "娯楽費", "医療費", "雑費"];
+const DEFAULT_MEMO_PRESETS = ["万代", "イオン", "ファミマ"];
 
 const entryForm = document.getElementById("entry-form");
 const amountInput = document.getElementById("amount-input");
@@ -14,24 +15,23 @@ const memoInput = document.getElementById("memo-input");
 const emailInput = document.getElementById("email-input");
 const saveButton = document.getElementById("save-button");
 const cancelEditButton = document.getElementById("cancel-edit-button");
-const sendButton = document.getElementById("send-button");
 const categoryButtons = Array.from(document.querySelectorAll(".category-chip"));
+const memoPresetButtons = Array.from(document.querySelectorAll(".memo-preset-button"));
+const memoPresetSettingsForm = document.getElementById("memo-preset-settings-form");
+const memoPresetNameInputs = Array.from(document.querySelectorAll(".memo-preset-name-input"));
 const entryFeedback = document.getElementById("entry-feedback");
-const sendFeedback = document.getElementById("send-feedback");
+const emailFeedback = document.getElementById("email-feedback");
+const memoPresetSettingsFeedback = document.getElementById("memo-preset-settings-feedback");
 const recordsList = document.getElementById("records-list");
 const recordsEmpty = document.getElementById("records-empty");
 const monthlySummary = document.getElementById("monthly-summary");
 const monthlySummaryBody = document.getElementById("monthly-summary-body");
 const currentMonthLabel = document.getElementById("current-month-label");
 const previousMonthLabel = document.getElementById("previous-month-label");
-const entryMode = document.getElementById("entry-mode");
-const unsentStatus = document.getElementById("unsent-status");
-const unsentCount = document.getElementById("unsent-count");
 const totalCountLabel = document.getElementById("total-count-label");
-const batchStatus = document.getElementById("batch-status");
-const networkStatus = document.getElementById("network-status");
 
 let records = [];
+let memoPresets = [...DEFAULT_MEMO_PRESETS];
 let selectedCategory = "";
 let editingId = null;
 
@@ -126,8 +126,19 @@ function sortByDatetimeDesc(left, right) {
   return new Date(right.datetime).getTime() - new Date(left.datetime).getTime();
 }
 
-function sortByDatetimeAsc(left, right) {
-  return new Date(left.datetime).getTime() - new Date(right.datetime).getTime();
+function normalizeRecord(record) {
+  if (!record || typeof record !== "object") {
+    return null;
+  }
+
+  return {
+    id: record.id,
+    datetime: record.datetime,
+    amount: record.amount,
+    category: record.category,
+    memo: typeof record.memo === "string" ? record.memo : "",
+    updatedAt: record.updatedAt || record.datetime
+  };
 }
 
 function readRecords() {
@@ -138,7 +149,7 @@ function readRecords() {
     }
 
     const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+    return Array.isArray(parsed) ? parsed.map(normalizeRecord).filter(Boolean) : [];
   } catch (error) {
     console.error("Failed to read local records:", error);
     return [];
@@ -146,7 +157,7 @@ function readRecords() {
 }
 
 function writeRecords(nextRecords) {
-  records = [...nextRecords].sort(sortByDatetimeDesc);
+  records = nextRecords.map(normalizeRecord).filter(Boolean).sort(sortByDatetimeDesc);
   window.localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
 }
 
@@ -173,13 +184,56 @@ function writeSavedEmail(email) {
   }
 }
 
+function validateMemoPresetNames(names) {
+  for (let index = 0; index < names.length; index += 1) {
+    const name = names[index];
+
+    if (!name) {
+      return { index, message: "ボタン" + (index + 1) + "の名前を入力してください。" };
+    }
+
+    if (name.length > MAX_MEMO_LENGTH) {
+      return { index, message: "ボタン" + (index + 1) + "の名前は32文字以内で入力してください。" };
+    }
+
+    if (/[,"\r\n]/.test(name)) {
+      return {
+        index,
+        message: "ボタン" + (index + 1) + "の名前に , 改行 ダブルクォートは使えません。"
+      };
+    }
+  }
+
+  return null;
+}
+
+function readMemoPresets() {
+  try {
+    const raw = window.localStorage.getItem(MEMO_PRESET_STORAGE_KEY);
+    if (!raw) {
+      return [...DEFAULT_MEMO_PRESETS];
+    }
+
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed) || parsed.length !== DEFAULT_MEMO_PRESETS.length) {
+      return [...DEFAULT_MEMO_PRESETS];
+    }
+
+    const names = parsed.map((name) => (typeof name === "string" ? name.trim() : ""));
+    return validateMemoPresetNames(names) ? [...DEFAULT_MEMO_PRESETS] : names;
+  } catch (error) {
+    console.error("Failed to read memo presets:", error);
+    return [...DEFAULT_MEMO_PRESETS];
+  }
+}
+
+function writeMemoPresets(names) {
+  window.localStorage.setItem(MEMO_PRESET_STORAGE_KEY, JSON.stringify(names));
+}
+
 function pruneExpiredRecords(sourceRecords) {
   const cutoff = Date.now() - AUTO_DELETE_DAYS * 24 * 60 * 60 * 1000;
   return sourceRecords.filter((record) => {
-    if (!record.sentAt) {
-      return true;
-    }
-
     const date = new Date(record.datetime);
     return Number.isNaN(date.getTime()) || date.getTime() >= cutoff;
   });
@@ -188,10 +242,6 @@ function pruneExpiredRecords(sourceRecords) {
 function setFeedback(target, message, isError = false) {
   target.textContent = message;
   target.classList.toggle("is-error", isError);
-}
-
-function updateNetworkStatus() {
-  networkStatus.textContent = navigator.onLine ? "オンライン" : "オフライン";
 }
 
 function updateCategorySelection() {
@@ -207,7 +257,6 @@ function resetEntryForm() {
   selectedCategory = "";
   entryForm.reset();
   updateCategorySelection();
-  entryMode.textContent = "新規";
   saveButton.textContent = "保存";
   cancelEditButton.hidden = true;
   setFeedback(entryFeedback, "");
@@ -265,13 +314,35 @@ function validateEntry() {
   return "";
 }
 
+function renderMemoPresets() {
+  memoPresetButtons.forEach((button, index) => {
+    button.textContent = memoPresets[index];
+  });
+
+  memoPresetNameInputs.forEach((input, index) => {
+    input.value = memoPresets[index];
+  });
+}
+
+function handleMemoPresetSettingsSubmit(event) {
+  event.preventDefault();
+
+  const names = memoPresetNameInputs.map((input) => input.value.trim());
+  const error = validateMemoPresetNames(names);
+  if (error) {
+    setFeedback(memoPresetSettingsFeedback, error.message, true);
+    memoPresetNameInputs[error.index]?.focus();
+    return;
+  }
+
+  memoPresets = names;
+  writeMemoPresets(memoPresets);
+  renderMemoPresets();
+  setFeedback(memoPresetSettingsFeedback, "ボタン名を保存しました。");
+}
+
 function renderSummary() {
-  const unsent = records.filter((record) => record.sentAt === null).length;
-  unsentCount.textContent = String(unsent);
-  unsentStatus.textContent = `未送信 ${unsent} 件`;
   totalCountLabel.textContent = `全体 ${records.length} 件`;
-  batchStatus.textContent = unsent > MAX_BATCH_SIZE ? `次回 ${MAX_BATCH_SIZE} 件` : "1通最大10件";
-  sendButton.disabled = unsent === 0;
 }
 
 function renderRecords() {
@@ -293,11 +364,7 @@ function renderRecords() {
     amount.className = "record-amount";
     amount.textContent = `¥${formatAmount(record.amount)}`;
 
-    const tag = document.createElement("span");
-    tag.className = `record-tag${record.sentAt ? " is-sent" : ""}`;
-    tag.textContent = record.sentAt ? "送信済み" : "未送信";
-
-    top.append(amount, tag);
+    top.append(amount);
 
     const bottom = document.createElement("div");
     bottom.className = "record-bottom";
@@ -428,10 +495,9 @@ function startEdit(recordId) {
   memoInput.value = record.memo;
   selectedCategory = record.category;
   updateCategorySelection();
-  entryMode.textContent = "編集中";
   saveButton.textContent = "更新";
   cancelEditButton.hidden = false;
-  setFeedback(entryFeedback, "編集中です。保存すると再送対象になります。");
+  setFeedback(entryFeedback, "編集中です。保存するとメール下書きを作成します。");
   amountInput.focus();
 }
 
@@ -460,40 +526,24 @@ function buildMailtoUrl(email, body) {
   return `mailto:${email}?${params.toString()}`;
 }
 
-function openMailDraft(email, batch) {
-  const csv = createCsv(batch);
+function openMailDraft(email, record) {
+  const csv = createCsv([record]);
   window.location.href = buildMailtoUrl(email, csv);
 }
 
-function createMailBatch() {
+function validateEmail() {
   const email = emailInput.value.trim();
+  emailInput.value = email;
+
   if (email && !emailInput.checkValidity()) {
-    setFeedback(sendFeedback, "送信先メールアドレスの形式を確認してください。", true);
+    setFeedback(emailFeedback, "宛先メールアドレスの形式を確認してください。", true);
     emailInput.focus();
-    return;
+    return null;
   }
 
-  const unsentRecords = records.filter((record) => record.sentAt === null).sort(sortByDatetimeAsc);
-  const batch = unsentRecords.slice(0, MAX_BATCH_SIZE);
-  if (batch.length === 0) {
-    setFeedback(sendFeedback, "未送信データはありません。");
-    return;
-  }
-
-  const sentAt = formatOffsetDateTime(new Date());
-  const nextRecords = records.map((record) =>
-    batch.some((item) => item.id === record.id) ? { ...record, sentAt } : record
-  );
-
-  writeRecords(nextRecords);
+  setFeedback(emailFeedback, "");
   writeSavedEmail(email);
-  renderAll();
-  const remaining = records.filter((record) => record.sentAt === null).length;
-  setFeedback(
-    sendFeedback,
-    `${batch.length} 件のメールを作成しました。${remaining > 0 ? `残り ${remaining} 件です。` : "未送信はありません。"}`
-  );
-  openMailDraft(email, batch);
+  return email;
 }
 
 function handleEntrySubmit(event) {
@@ -502,6 +552,11 @@ function handleEntrySubmit(event) {
   const error = validateEntry();
   if (error) {
     setFeedback(entryFeedback, error, true);
+    return;
+  }
+
+  const email = validateEmail();
+  if (email === null) {
     return;
   }
 
@@ -518,24 +573,21 @@ function handleEntrySubmit(event) {
       return;
     }
 
-    const nextRecords = records.map((record) =>
-      record.id === editingId
-        ? {
-            ...record,
-            amount,
-            category: selectedCategory,
-            memo,
-            updatedAt: nowValue,
-            sentAt: null
-          }
-        : record
-    );
+    const updatedRecord = {
+      id: current.id,
+      datetime: current.datetime,
+      amount,
+      category: selectedCategory,
+      memo,
+      updatedAt: nowValue
+    };
+    const nextRecords = records.map((record) => (record.id === editingId ? updatedRecord : record));
 
     writeRecords(nextRecords);
     renderAll();
     resetEntryForm();
     setFeedback(entryFeedback, "更新しました。");
-    createMailBatch();
+    openMailDraft(email, updatedRecord);
     return;
   }
 
@@ -545,15 +597,14 @@ function handleEntrySubmit(event) {
     amount,
     category: selectedCategory,
     memo,
-    updatedAt: nowValue,
-    sentAt: null
+    updatedAt: nowValue
   };
 
   writeRecords([record, ...records]);
   renderAll();
   resetEntryForm();
   setFeedback(entryFeedback, "保存しました。");
-  createMailBatch();
+  openMailDraft(email, record);
 }
 
 function sanitizeNumericInput(event) {
@@ -584,8 +635,9 @@ function initialize() {
   records = pruneExpiredRecords(readRecords()).sort(sortByDatetimeDesc);
   writeRecords(records);
   emailInput.value = readSavedEmail();
+  memoPresets = readMemoPresets();
   renderAll();
-  updateNetworkStatus();
+  renderMemoPresets();
   registerServiceWorker();
   amountInput.focus();
 }
@@ -598,7 +650,20 @@ categoryButtons.forEach((button) => {
   });
 });
 
+memoPresetButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const index = Number(button.dataset.presetIndex);
+    if (!Number.isInteger(index) || !memoPresets[index]) {
+      return;
+    }
+
+    memoInput.value = memoPresets[index];
+    setFeedback(entryFeedback, "");
+  });
+});
+
 entryForm.addEventListener("submit", handleEntrySubmit);
+memoPresetSettingsForm.addEventListener("submit", handleMemoPresetSettingsSubmit);
 cancelEditButton.addEventListener("click", () => {
   resetEntryForm();
   amountInput.focus();
@@ -610,9 +675,11 @@ emailInput.addEventListener("change", () => {
   emailInput.value = email;
   if (!email || emailInput.checkValidity()) {
     writeSavedEmail(email);
+    setFeedback(emailFeedback, "");
+  } else {
+    setFeedback(emailFeedback, "宛先メールアドレスの形式を確認してください。", true);
   }
 });
-sendButton.addEventListener("click", createMailBatch);
 recordsList.addEventListener("click", (event) => {
   const button = event.target.closest(".record-button");
   if (!button) {
@@ -621,6 +688,4 @@ recordsList.addEventListener("click", (event) => {
 
   startEdit(button.dataset.recordId);
 });
-window.addEventListener("online", updateNetworkStatus);
-window.addEventListener("offline", updateNetworkStatus);
 window.addEventListener("load", initialize);

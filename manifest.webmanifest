@@ -2,7 +2,7 @@
   "id": "./",
   "name": "支出記録",
   "short_name": "支出記録",
-  "description": "外出先の支出を素早く記録し、未送信データをメール作成する iPhone Safari 向け PWA。",
+  "description": "外出先の支出を素早く記録し、記録内容をメール作成する iPhone Safari 向け PWA。",
   "lang": "ja-JP",
   "start_url": "./index.html",
   "scope": "./",

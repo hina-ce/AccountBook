@@ -10,7 +10,7 @@
     <title>支出記録</title>
     <meta
       name="description"
-      content="外出先の支出を素早く記録し、未送信データをメール作成できる iPhone Safari 向け PWA。"
+      content="外出先の支出を素早く記録し、記録内容をメール作成できる iPhone Safari 向け PWA。"
     />
 
     <link rel="manifest" href="./manifest.webmanifest" />
@@ -20,22 +20,7 @@
   </head>
   <body>
     <main class="app-shell">
-      <header class="topbar">
-        <div>
-          <p class="eyebrow">Expense Logger</p>
-        </div>
-        <div class="status-group" aria-label="状態">
-          <span id="network-status" class="status-pill">確認中</span>
-          <span id="unsent-status" class="status-pill status-pill-accent">未送信 0 件</span>
-        </div>
-      </header>
-
       <section class="panel entry-panel" aria-label="入力">
-        <div class="panel-heading">
-          <p class="section-label">入力</p>
-          <p id="entry-mode" class="mode-badge">新規</p>
-        </div>
-
         <form id="entry-form" class="entry-form" novalidate>
           <label class="field">
             <span class="field-label">金額</span>
@@ -78,6 +63,12 @@
             />
           </label>
 
+          <div id="memo-preset-list" class="memo-preset-grid" aria-label="メモ定型">
+            <button type="button" class="memo-preset-button" data-preset-index="0">万代</button>
+            <button type="button" class="memo-preset-button" data-preset-index="1">イオン</button>
+            <button type="button" class="memo-preset-button" data-preset-index="2">ファミマ</button>
+          </div>
+
           <p id="entry-feedback" class="feedback" role="status" aria-live="polite"></p>
 
           <div class="action-row">
@@ -89,39 +80,27 @@
         </form>
       </section>
 
-      <section class="panel send-panel" aria-label="送信">
+      <section class="panel email-panel" aria-label="メール設定">
         <div class="panel-heading">
-          <p class="section-label">送信</p>
-          <p id="batch-status" class="mode-badge">1通最大10件</p>
+          <p class="section-label">メール設定</p>
         </div>
 
-        <div class="send-grid">
-          <label class="field">
-            <span class="field-label">宛先メールアドレス</span>
-            <input
-              id="email-input"
-              name="email"
-              class="field-input"
-              type="email"
-              inputmode="email"
-              autocomplete="off"
-              autocapitalize="off"
-              spellcheck="false"
-              placeholder="name@example.com"
-            />
-          </label>
+        <label class="field">
+          <span class="field-label">宛先メールアドレス</span>
+          <input
+            id="email-input"
+            name="email"
+            class="field-input"
+            type="email"
+            inputmode="email"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="name@example.com"
+          />
+        </label>
 
-          <div class="send-summary">
-            <p class="summary-value"><span id="unsent-count">0</span> 件</p>
-            <p class="summary-label">未送信</p>
-          </div>
-        </div>
-
-        <p id="send-feedback" class="feedback" role="status" aria-live="polite"></p>
-
-        <div class="action-row">
-          <button id="send-button" class="primary-button" type="button">メールを作成</button>
-        </div>
+        <p id="email-feedback" class="feedback" role="status" aria-live="polite"></p>
       </section>
 
       <section class="panel list-panel" aria-label="履歴">
@@ -150,6 +129,32 @@
               <tbody id="monthly-summary-body"></tbody>
             </table>
           </div>
+        </section>
+
+        <section class="memo-preset-settings" aria-label="メモボタン設定">
+          <div class="memo-preset-settings-header">
+            <p class="section-label">メモボタン設定</p>
+          </div>
+
+          <form id="memo-preset-settings-form" class="memo-preset-settings-form" novalidate>
+            <div class="memo-preset-settings-list">
+              <label class="field">
+                <span class="field-label">ボタン1</span>
+                <input class="field-input memo-preset-name-input" type="text" maxlength="32" autocomplete="off" data-preset-index="0" />
+              </label>
+              <label class="field">
+                <span class="field-label">ボタン2</span>
+                <input class="field-input memo-preset-name-input" type="text" maxlength="32" autocomplete="off" data-preset-index="1" />
+              </label>
+              <label class="field">
+                <span class="field-label">ボタン3</span>
+                <input class="field-input memo-preset-name-input" type="text" maxlength="32" autocomplete="off" data-preset-index="2" />
+              </label>
+            </div>
+
+            <p id="memo-preset-settings-feedback" class="feedback" role="status" aria-live="polite"></p>
+            <button class="secondary-button memo-preset-save-button" type="submit">ボタン名を保存</button>
+          </form>
         </section>
       </section>
     </main>
