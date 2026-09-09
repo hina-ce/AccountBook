@@ -7,7 +7,8 @@ const MAX_MEMO_LENGTH = 32;
 const AUTO_DELETE_DAYS = 60;
 const MAIL_SUBJECT = "kakeibo-pwa-export";
 const CATEGORIES = ["食費", "外食費", "交際費", "娯楽費", "医療費", "雑費"];
-const DEFAULT_MEMO_PRESETS = ["万代", "イオン", "ファミマ"];
+const DEFAULT_MEMO_PRESETS = ["万代", "イオン", "ファミマ", "セブン", "ローソン", "ライフ"];
+const LEGACY_MEMO_PRESET_COUNT = 3;
 
 const entryForm = document.getElementById("entry-form");
 const amountInput = document.getElementById("amount-input");
@@ -215,11 +216,20 @@ function readMemoPresets() {
     }
 
     const parsed = JSON.parse(raw);
-    if (!Array.isArray(parsed) || parsed.length !== DEFAULT_MEMO_PRESETS.length) {
+    if (
+      !Array.isArray(parsed) ||
+      ![LEGACY_MEMO_PRESET_COUNT, DEFAULT_MEMO_PRESETS.length].includes(parsed.length)
+    ) {
       return [...DEFAULT_MEMO_PRESETS];
     }
 
-    const names = parsed.map((name) => (typeof name === "string" ? name.trim() : ""));
+    const names = DEFAULT_MEMO_PRESETS.map((defaultName, index) => {
+      if (index >= parsed.length) {
+        return defaultName;
+      }
+
+      return typeof parsed[index] === "string" ? parsed[index].trim() : "";
+    });
     return validateMemoPresetNames(names) ? [...DEFAULT_MEMO_PRESETS] : names;
   } catch (error) {
     console.error("Failed to read memo presets:", error);

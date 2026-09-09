@@ -1,4 +1,4 @@
-const CACHE_VERSION = "v3";
+const CACHE_VERSION = "v4";
 const STATIC_CACHE = `expense-pwa-static-${CACHE_VERSION}`;
 const RUNTIME_CACHE = `expense-pwa-runtime-${CACHE_VERSION}`;
 const CORE_ASSETS = [
